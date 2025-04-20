@@ -14,13 +14,11 @@ ADMIN_IDS = [1341404143]  # замените на свой Telegram ID
 SETTINGS_FILE = "settings.json"
 flask_app = Flask(__name__)
 
+
 @flask_app.route('/')
 def home():
     return 'Bot is running!'
 
-# Запуск Flask
-if __name__ == '__main__':
-    flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
 
 def load_settings():
     try:
@@ -30,16 +28,17 @@ def load_settings():
         settings = {}
 
     # Устанавливаем значения по умолчанию
-    settings.setdefault("caption", "<a href='https://t.me/video4k_downloader_bot'>🔗 Скачано из TikTok Video Downloader</a>")
+    settings.setdefault("caption",
+                        "<a href='https://t.me/video4k_downloader_bot'>🔗 Скачано из TikTok Video Downloader</a>")
     settings.setdefault("requirements_enabled", False)
     settings.setdefault("channels", [])
 
     return settings
 
+
 def save_settings(settings):
     with open("settings.json", "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2, ensure_ascii=False)
-
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -185,17 +184,25 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Такого канала нет в списке.")
 
-def start_bot():
-    async def main():
-        print("Бот запущен!")
 
-        await application.bot.initialize()  # не обязательно, но безопасно
-        await application.start()
-        await application.start_polling()
-    
-        # Просто держим поток открытым
-        await asyncio.Event().wait()
-    
+def start_bot():
+    async def bot_main():
+        application = ApplicationBuilder().token(BOT_TOKEN).build()
+
+        # Регистрируем хендлеры
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("admin", admin_panel))
+        application.add_handler(CommandHandler("set_caption", set_caption))
+        application.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
+        application.add_handler(CommandHandler("add_channel", add_channel))
+        application.add_handler(CommandHandler("remove_channel", remove_channel))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
+
+        await application.bot.delete_webhook(drop_pending_updates=True)  # важно!
+
+        print("✅ Бот запущен!")
+        await application.run_polling()
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(main())
