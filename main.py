@@ -205,9 +205,11 @@ def start_bot():
     bot_app.run_polling()
 
 
+# ✅ Запуск бота и Flask-сервера
 if __name__ == '__main__':
     # Запускаем Telegram-бота в отдельном потоке
     threading.Thread(target=start_bot).start()
 
-    # Flask — чтобы Railway видел, что сервис работает
+    # Flask — чтобы Render видел, что сервис работает
     flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+
