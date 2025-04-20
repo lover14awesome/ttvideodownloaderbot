@@ -207,9 +207,9 @@ def start_bot():
 
 # ✅ Запуск бота и Flask-сервера
 if __name__ == '__main__':
-    # Запускаем Telegram-бота в отдельном потоке
+    # Запускаем Telegram-бота
     threading.Thread(target=start_bot).start()
 
-    # Flask — чтобы Render видел, что сервис работает
-    flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+    # Flask сервер запускается Gunicorn'ом, а не этой строкой:
+    # flask_app.run(...)
 
