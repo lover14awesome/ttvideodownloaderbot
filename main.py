@@ -4,9 +4,9 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 from telegram.constants import ParseMode
 from telegram.error import BadRequest
 import json
+import os
 
-
-BOT_TOKEN = "7598911853:AAGqRmYSCHv9Ixb_sd6hDCQuMTm7BanKfQA"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [1341404143]  # замените на свой Telegram ID
 
 SETTINGS_FILE = "settings.json"
