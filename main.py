@@ -187,26 +187,15 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def start_bot():
     async def main():
-        application = (
-            ApplicationBuilder().token(BOT_TOKEN).build()
-        )
-        application.add_handler(CommandHandler("start", start))
-        application.add_handler(CommandHandler("admin", admin_panel))
-        application.add_handler(CommandHandler("set_caption", set_caption))
-        application.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
-        application.add_handler(CommandHandler("add_channel", add_channel))
-        application.add_handler(CommandHandler("remove_channel", remove_channel))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
+    print("Бот запущен!")
 
-        print("Бот запущен!")
+    await application.bot.initialize()  # не обязательно, но безопасно
+    await application.start()
+    await application.start_polling()
 
-        await application.initialize()
-        await application.start()
-        await application.updater.start_polling()
+    # Просто держим поток открытым
+    await asyncio.Event().wait()
 
-        # Ожидаем завершения (можно заменить на asyncio.Event().wait())
-        await application.updater.wait()
-    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(main())
