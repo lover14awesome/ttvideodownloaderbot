@@ -185,24 +185,33 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Такого канала нет в списке.")
 
 
-def start_bot():
-    async def bot_main():
-        application = ApplicationBuilder().token(BOT_TOKEN).build()
+async def start_bot():
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
 
-        # Регистрируем хендлеры
-        application.add_handler(CommandHandler("start", start))
-        application.add_handler(CommandHandler("admin", admin_panel))
-        application.add_handler(CommandHandler("set_caption", set_caption))
-        application.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
-        application.add_handler(CommandHandler("add_channel", add_channel))
-        application.add_handler(CommandHandler("remove_channel", remove_channel))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("admin", admin_panel))
+    application.add_handler(CommandHandler("set_caption", set_caption))
+    application.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
+    application.add_handler(CommandHandler("add_channel", add_channel))
+    application.add_handler(CommandHandler("remove_channel", remove_channel))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
 
-        await application.bot.delete_webhook(drop_pending_updates=True)  # важно!
-        print("✅ Бот запущен!")
-        await application.run_polling()
+    await application.bot.delete_webhook(drop_pending_updates=True)
+    print("✅ Бот запущен!")
+    await application.run_polling()
 
-    asyncio.run(bot_main())
+if __name__ == "__main__":
+    import multiprocessing
 
+    def flask_thread():
+        flask_app.run(host="0.0.0.0", port=10000)
 
-threading.Thread(target=start_bot).start()
+    def bot_process():
+        asyncio.run(start_bot())
+
+    # Запускаем Flask в отдельном процессе
+    flask = multiprocessing.Process(target=flask_thread)
+    flask.start()
+
+    # Запускаем бота в основном потоке
+    bot_process()
