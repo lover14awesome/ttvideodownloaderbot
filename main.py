@@ -192,6 +192,8 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Такого канала нет в списке.")
 
 
+
+
 def start_bot():
     bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start))
@@ -205,11 +207,11 @@ def start_bot():
     bot_app.run_polling()
 
 
-# ✅ Запуск бота и Flask-сервера
-if __name__ == '__main__':
-    # Запускаем Telegram-бота
-    threading.Thread(target=start_bot).start()
+# ✅ Запускаем Telegram-бота сразу (и на Render, и локально)
+threading.Thread(target=start_bot, daemon=True).start()
 
-    # Flask сервер запускается Gunicorn'ом, а не этой строкой:
-    # flask_app.run(...)
+# Локальный запуск Flask (только для dev, Render использует gunicorn)
+if __name__ == '__main__':
+    flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+
 
