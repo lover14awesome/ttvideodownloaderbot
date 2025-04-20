@@ -1,6 +1,6 @@
 {
-  "caption": "<a href='https://t.me/video4k_downloader_bot'><b>🔗 Скачано из TikTok Video Downloader</b></a>",
-  "requirements_enabled": true,
+  "caption": "<a href='https://t.me/ttclip_bot'><b>🔗 Скачано из TikTok Video Downloader</b></a>",
+  "requirements_enabled": false,
   "required_channels": [
     "https://t.me/siiizon"
   ],
