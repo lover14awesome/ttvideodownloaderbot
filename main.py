@@ -9,10 +9,12 @@ from telegram.ext import CallbackQueryHandler
 from telegram.ext import MessageHandler, filters
 from telegram.constants import ParseMode
 from telegram import InputMediaPhoto
+import re
+from bs4 import BeautifulSoup
 
 
 
-BOT_TOKEN = "7598911853:AAGqRmYSCHv9Ixb_sd6hDCQuMTm7BanKfQA"
+BOT_TOKEN = "8110680619:AAFLPLXdaqp1ymm-mAwm5Fz1Tp1Xgp42Wm4"
 ADMIN_IDS = [1341404143]  # замените на свой Telegram ID
 SETTINGS_FILE = "settings.json"
 
@@ -24,7 +26,7 @@ def load_settings():
         settings = {}
 
     # Устанавливаем значения по умолчанию
-    settings.setdefault("caption", "<a href='https://t.me/video4k_downloader_bot'>🔗 Скачано из TikTok Video Downloader</a>")
+    settings.setdefault("caption", "<a href='https://t.me/ttclip_bot'>🔗 Скачано из TikTok Video Downloader</a>")
     settings.setdefault("requirements_enabled", False)
     settings.setdefault("channels", [])
 
@@ -61,49 +63,62 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def download_and_send_video(url, user_id, reply_video_func, reply_text_func, reply_photo_func=None, bot=None, chat_id=None):
     settings = load_settings()
-    await reply_text_func("⏳ Обрабатываю ссылку...")
+    await reply_text_func("⏳ Пробую скачать видео...")
 
-    api_url = f"https://tikwm.com/api/?url={url}"
-    response = requests.get(api_url).json()
-
-    if not response.get("data"):
-        await reply_text_func("❌ Не удалось получить данные. Проверь ссылку.")
-        return
-
-    data = response["data"]
     caption = settings.get("caption", "")
+    success = False
 
-    # Если это фото
-    if "images" in data and data["images"]:
-        try:
+    ### --- 1. Tikwm API ---
+    try:
+        response = requests.get(f"https://tikwm.com/api/?url={url}", timeout=10).json()
+        data = response.get("data", {})
+
+        if data.get("play"):
+            video_bytes = requests.get(data["play"]).content
+            await reply_video_func(video=video_bytes, caption=caption, parse_mode=ParseMode.HTML)
+            success = True
+            return
+        elif data.get("images"):
             media_group = []
             for idx, img_url in enumerate(data["images"]):
                 img_bytes = requests.get(img_url).content
                 media = InputMediaPhoto(img_bytes, caption=caption if idx == 0 else None, parse_mode=ParseMode.HTML)
                 media_group.append(media)
-
-            await bot.send_media_group(
-                chat_id=chat_id,
-                media=media_group
-            )
-        except Exception as e:
-            await reply_text_func(f"❌ Ошибка при отправке фото:\n{str(e)}")
-        return
-
-    # Если это видео
-    if not data.get("play"):
-        await reply_text_func("❌ Не удалось получить видео.")
-        return
-
-    try:
-        video_bytes = requests.get(data["play"]).content
-        await reply_video_func(
-            video=video_bytes,
-            caption=caption,
-            parse_mode=ParseMode.HTML
-        )
+            await bot.send_media_group(chat_id=chat_id, media=media_group)
+            success = True
+            return
     except Exception as e:
-        await reply_text_func(f"❌ Ошибка при отправке видео:\n{str(e)}")
+        print(f"[tikwm] ошибка: {e}")
+
+    ### --- 2. SaveFrom.net (через sfrom API) ---
+    try:
+        sf_response = requests.get(f"https://api.savetik.cc/api/download?url={url}", timeout=10).json()
+        if "video" in sf_response and sf_response["video"].get("url"):
+            video_url = sf_response["video"]["url"]
+            video_bytes = requests.get(video_url).content
+            await reply_video_func(video=video_bytes, caption=caption, parse_mode=ParseMode.HTML)
+            success = True
+            return
+    except Exception as e:
+        print(f"[savefrom] ошибка: {e}")
+
+    ### --- 3. Snaptik (парсим HTML) ---
+    try:
+        page = requests.get(f"https://snaptik.app/ru#url={url}", timeout=10).text
+        soup = BeautifulSoup(page, "html.parser")
+        links = soup.select("a[href*='https://v16m.tiktokcdn.com/']")
+        if links:
+            video_url = links[0]['href']
+            video_bytes = requests.get(video_url).content
+            await reply_video_func(video=video_bytes, caption=caption, parse_mode=ParseMode.HTML)
+            success = True
+            return
+    except Exception as e:
+        print(f"[snaptik] ошибка: {e}")
+
+    ### --- Не удалось ---
+    if not success:
+        await reply_text_func("❌ Не удалось скачать видео. Попробуйте другую ссылку или чуть позже.")
 
 
 async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -247,10 +262,8 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     msg = update.message
     text = ""
-    if msg.text and msg.text.startswith("/broadcast"):
-        text = msg.text.removeprefix("/broadcast").strip()
-    elif msg.caption:
-        text = msg.caption.strip()
+    raw_text = msg.text or msg.caption or ""
+    text = raw_text.replace("/broadcast", "", 1).strip()
 
     count = 0
 
