@@ -187,18 +187,18 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def start_bot():
     async def main():
-    print("Бот запущен!")
+        print("Бот запущен!")
 
-    await application.bot.initialize()  # не обязательно, но безопасно
-    await application.start()
-    await application.start_polling()
-
-    # Просто держим поток открытым
-    await asyncio.Event().wait()
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(main())
+        await application.bot.initialize()  # не обязательно, но безопасно
+        await application.start()
+        await application.start_polling()
+    
+        # Просто держим поток открытым
+        await asyncio.Event().wait()
+    
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(main())
 
 
 threading.Thread(target=start_bot).start()
