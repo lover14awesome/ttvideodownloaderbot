@@ -6,6 +6,8 @@ from telegram.error import BadRequest
 import json
 import os
 from flask import Flask
+import threading
+
 
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -13,9 +15,9 @@ ADMIN_IDS = [1341404143]  # замените на свой Telegram ID
 
 SETTINGS_FILE = "settings.json"
 
-app = Flask(__name__)
+flask_app = Flask(__name__)
 
-@app.route('/')
+@flask_app.route('/')
 def home():
     return 'Bot is running!'
 
@@ -190,16 +192,21 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Такого канала нет в списке.")
 
 
-if __name__ == "__main__":
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("admin", admin_panel))
-    app.add_handler(CommandHandler("set_caption", set_caption))
-    app.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
-    app.add_handler(CommandHandler("add_channel", add_channel))
-    app.add_handler(CommandHandler("remove_channel", remove_channel))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
-
+def start_bot():
+    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_app.add_handler(CommandHandler("start", start))
+    bot_app.add_handler(CommandHandler("admin", admin_panel))
+    bot_app.add_handler(CommandHandler("set_caption", set_caption))
+    bot_app.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
+    bot_app.add_handler(CommandHandler("add_channel", add_channel))
+    bot_app.add_handler(CommandHandler("remove_channel", remove_channel))
+    bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
     print("Бот запущен!")
-    app.run_polling()
+    bot_app.run_polling()
+
+if __name__ == "__main__":
+    # Запускаем Telegram-бота в отдельном потоке
+    threading.Thread(target=start_bot).start()
+
+    # Flask — чтобы Render видел, что сервис работает
+    flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
