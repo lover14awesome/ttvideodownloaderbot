@@ -7,6 +7,8 @@ import json
 import os
 from flask import Flask
 import threading
+import asyncio
+
 
 
 
@@ -192,16 +194,19 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def start_bot():
-    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
-    bot_app.add_handler(CommandHandler("start", start))
-    bot_app.add_handler(CommandHandler("admin", admin_panel))
-    bot_app.add_handler(CommandHandler("set_caption", set_caption))
-    bot_app.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
-    bot_app.add_handler(CommandHandler("add_channel", add_channel))
-    bot_app.add_handler(CommandHandler("remove_channel", remove_channel))
-    bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
-    print("Бот запущен!")
-    bot_app.run_polling()
+    async def main():
+        bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
+        bot_app.add_handler(CommandHandler("start", start))
+        bot_app.add_handler(CommandHandler("admin", admin_panel))
+        bot_app.add_handler(CommandHandler("set_caption", set_caption))
+        bot_app.add_handler(CommandHandler("toggle_reqs", toggle_requirements))
+        bot_app.add_handler(CommandHandler("add_channel", add_channel))
+        bot_app.add_handler(CommandHandler("remove_channel", remove_channel))
+        bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
+        print("Бот запущен!")
+        await bot_app.run_polling()
+
+    asyncio.run(main())  # запускаем в event loop этого потока
 
 
 # ✅ Запускаем Telegram-бота сразу (и на Render, и локально)
