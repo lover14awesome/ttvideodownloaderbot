@@ -204,9 +204,9 @@ def start_bot():
         bot_app.add_handler(CommandHandler("remove_channel", remove_channel))
         bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
         print("Бот запущен!")
-        await bot_app.run_polling()
+        await bot_app.run_polling(stop_signals=None)  # <-- ВАЖНО
 
-    asyncio.run(main())  # запускаем в event loop этого потока
+    asyncio.run(main())
 
 
 # ✅ Запускаем Telegram-бота сразу (и на Render, и локально)
