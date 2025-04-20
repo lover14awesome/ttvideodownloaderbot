@@ -23,7 +23,7 @@ def home():
 
 # Запуск Flask
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+    flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
 
 # Запускаем бота в отдельном потоке
 threading.Thread(target=start_bot).start()
@@ -206,5 +206,8 @@ def start_bot():
 
 
 if __name__ == '__main__':
+    # Запускаем Telegram-бота в отдельном потоке
     threading.Thread(target=start_bot).start()
+
+    # Flask — чтобы Railway видел, что сервис работает
     flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
