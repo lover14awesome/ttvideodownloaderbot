@@ -199,17 +199,10 @@ def start_bot():
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
 
         await application.bot.delete_webhook(drop_pending_updates=True)  # важно!
-
         print("✅ Бот запущен!")
         await application.run_polling()
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main())
+    asyncio.run(bot_main())
 
 
 threading.Thread(target=start_bot).start()
-
-# Локальный запуск Flask (только для dev, Render использует gunicorn)
-if __name__ == '__main__':
-    flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
