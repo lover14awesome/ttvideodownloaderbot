@@ -193,6 +193,8 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+import asyncio
+
 def start_bot():
     async def main():
         bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -204,13 +206,14 @@ def start_bot():
         bot_app.add_handler(CommandHandler("remove_channel", remove_channel))
         bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
         print("Бот запущен!")
-        await bot_app.run_polling(stop_signals=None)  # <-- ВАЖНО
+        await bot_app.run_polling(stop_signals=None)
 
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    loop.create_task(main())
 
 
-# ✅ Запускаем Telegram-бота сразу (и на Render, и локально)
-threading.Thread(target=start_bot, daemon=True).start()
+threading.Thread(target=start_bot).start()
+
 
 # Локальный запуск Flask (только для dev, Render использует gunicorn)
 if __name__ == '__main__':
