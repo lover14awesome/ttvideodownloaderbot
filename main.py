@@ -5,11 +5,20 @@ from telegram.constants import ParseMode
 from telegram.error import BadRequest
 import json
 import os
+from flask import Flask
+
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [1341404143]  # замените на свой Telegram ID
 
 SETTINGS_FILE = "settings.json"
+
+# Запуск Flask
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+
+# Запускаем бота в отдельном потоке
+threading.Thread(target=start_bot).start()
 
 def load_settings():
     try:
