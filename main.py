@@ -9,14 +9,9 @@ from flask import Flask
 import threading
 import asyncio
 
-
-
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [1341404143]  # замените на свой Telegram ID
-
 SETTINGS_FILE = "settings.json"
-
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
@@ -190,11 +185,6 @@ async def remove_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Такого канала нет в списке.")
 
-
-
-
-import asyncio
-
 def start_bot():
     async def main():
         bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -208,12 +198,12 @@ def start_bot():
         print("Бот запущен!")
         await bot_app.run_polling(stop_signals=None)
 
-    loop = asyncio.get_event_loop()
-    loop.create_task(main())
-
+    # создаём и ставим event loop в этом потоке
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main())
 
 threading.Thread(target=start_bot).start()
-
 
 # Локальный запуск Flask (только для dev, Render использует gunicorn)
 if __name__ == '__main__':
