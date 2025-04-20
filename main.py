@@ -204,6 +204,8 @@ def start_bot():
     print("Бот запущен!")
     bot_app.run_polling()
 
+
+if __name__ == '__main__':
     # Запускаем Telegram-бота в отдельном потоке
     threading.Thread(target=start_bot).start()
 
