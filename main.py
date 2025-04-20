@@ -25,9 +25,6 @@ def home():
 if __name__ == '__main__':
     flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
 
-# Запускаем бота в отдельном потоке
-threading.Thread(target=start_bot).start()
-
 def load_settings():
     try:
         with open("settings.json", "r", encoding="utf-8") as f:
@@ -213,5 +210,3 @@ threading.Thread(target=start_bot, daemon=True).start()
 # Локальный запуск Flask (только для dev, Render использует gunicorn)
 if __name__ == '__main__':
     flask_app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
-
-
