@@ -200,17 +200,17 @@ def start_bot():
 
         print("Бот запущен!")
 
-        # Вручной запуск бота (без run_polling)
         await application.initialize()
         await application.start()
-        await application.bot.initialize()  # необязательно, но безопасно
-        await application.start_polling()
-        # Просто держим поток открытым
-        await asyncio.Event().wait()
+        await application.updater.start_polling()
 
+        # Ожидаем завершения (можно заменить на asyncio.Event().wait())
+        await application.updater.wait()
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(main())
+
 
 threading.Thread(target=start_bot).start()
 
